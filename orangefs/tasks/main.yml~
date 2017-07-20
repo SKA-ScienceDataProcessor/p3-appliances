@@ -1,0 +1,90 @@
+---
+- name: update hosts to make sure names will resolve in hosts file
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ hostvars[item]['ansible_default_ipv4']['address'] }} {{ hostvars[item].inventory_hostname }}"
+    state: present
+  with_items: "{{ groups['orange-all'] }}"
+
+
+- name: Generate config file
+  command: pvfs2-genconfig --quiet --protocol tcp --ioservers "{{ groups['orange-meta'] | join(',') }}" --metaservers "{{ groups['orange-meta'] |join(',') }}" --storage /export/orangefs /etc/pvfs2.conf creates=/etc/pvfs2.conf
+  become: true
+
+- name: update storage path
+  lineinfile:
+    path: /etc/pvfs2.conf
+    regexp: 'DataStorageSpace /export/orangefs'
+    line: ' 	DataStorageSpace /export/orangefs/data'
+
+- name: update storage path
+  lineinfile:
+    path: /etc/pvfs2.conf
+    regexp: 'MetadataStorageSpace /export/orangefs'
+    line: ' 	MetadataStorageSpace /export/orangefs/meta'
+
+
+
+# Setup disks
+
+- name: install mdadm
+  dnf: name=mdadm state=latest
+  when: inventory_hostname in groups['orange-data']
+
+- name: setup mdraid 5 on nvmes
+  command: mdadm --create --verbose /dev/md0 --level=5 --raid-devices=4 /dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1 /dev/nvme3n1 creates=/dev/md0
+  become: true
+  when: inventory_hostname in groups['orange-data']
+  
+- name: format nvme disks mdraid
+  filesystem:
+    fstype: xfs
+    dev: /dev/md0
+  when: inventory_hostname in groups['orange-data']
+  run_once: true
+
+- name: create mountpoint
+  file: path=/export/orangefs state=directory
+  when: inventory_hostname in groups['orange-data']
+  
+- name: mount nvmes
+  mount:
+    path: /export/orangefs
+    src: /dev/md0
+    fstype: xfs
+    state: present
+  become: true
+  when: inventory_hostname in groups['orange-data']
+
+
+- name: probe the orangefs module
+  modprobe:
+    name: orangefs
+    state: present
+
+- name: format pvfs2 storage
+  command: pvfs2-server -f -a "{{ inventory_hostname }}" /etc/pvfs2.conf creates=/export/orangefs/data
+  when: inventory_hostname in groups['orange-data']
+  
+- name: start pvfs2 server
+  systemd:
+    name: orangefs
+    state: started
+  when: inventory_hostname in groups['orange-data']
+
+- name: start pvfs2 client
+  command: pvfs2-client -p /usr/sbin/pvfs2-client-core
+  when: inventory_hostname in groups['orange-client']
+
+- name: create mountpoint scratch
+  file: path=/scratch state=directory
+  when: inventory_hostname in groups['orange-client']
+
+- name: mount pvfs2
+  mount:
+    path: /scratch
+    src: tcp://"{{ groups['orange-data'] }}":3334/orangefs
+    fstype: pvfs2
+    state: present
+  become: true
+  when: inventory_hostname in groups['orange-client']

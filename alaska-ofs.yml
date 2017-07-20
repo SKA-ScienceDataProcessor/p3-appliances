@@ -1,0 +1,6 @@
+---
+- hosts: orange-all
+  become: yes
+  roles:
+    - role: orange_setup
+    - role: orangefs
