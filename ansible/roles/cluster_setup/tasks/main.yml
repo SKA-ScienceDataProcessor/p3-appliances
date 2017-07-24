@@ -1,0 +1,4 @@
+---
+- include: time.yml
+- include: hosts.yml
+- include: openstack.yml

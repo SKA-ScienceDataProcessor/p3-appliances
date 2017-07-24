@@ -1,0 +1,61 @@
+---
+# Cluster infrastructure parameters
+cluster_name: stack
+cluster_groups: []
+cluster_roles: []
+
+# Cloud guest user used for Ansible access and password-less sudo.
+cluster_guest: centos
+
+# This keypair should exist in OpenStack.  It will be assigned
+# for the cloud user for the next phase of deployment.
+cluster_keypair: rsa_keypair
+
+# Alaska environment configuration parameters
+# Config name of the OpenStack cloud to authenticate against
+alaska_cloud: alaska
+# Mount point for home directories (nb, /home will upset cloud user)
+alaska_homedir: /alaska
+alaska_softiron: 10.4.99.101
+
+# List of cluster users, already defined in OpenStack
+alaska_users:
+  - name: "Chris Broekema"
+    user: chris
+    uid: 2001
+  - name: "Paul Browne"
+    user: paul
+    uid: 2002
+  - name: "Mark Goddard"
+    user: mark
+    uid: 2003
+  - name: "Vlad Stolyarov"
+    user: vlad
+    uid: 2004
+  - name: "John Taylor"
+    user: john
+    uid: 2005
+  - name: "Stig Telfer"
+    user: stig
+    uid: 2006
+  - name: "Ben Mort"
+    user: ben
+    uid: 2007
+  - name: "Steve Simpson"
+    user: steve
+    uid: 2008
+  - name: "Fred Dulwich"
+    user: fred
+    uid: 2009
+  - name: "Alasdair King"
+    user: alasdair
+    uid: 2010
+  - name: "Verity Allan"
+    user: verity
+    uid: 2011
+  - name: "Nijin Thykkathu"
+    user: nijin
+    uid: 2012
+  - name: "James Kent"
+    user: james
+    uid: 2013

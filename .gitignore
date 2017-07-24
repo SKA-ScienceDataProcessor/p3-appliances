@@ -1,0 +1,10 @@
+*.swp
+
+# Ansible retry files.
+ansible/*.retry
+
+# Auto-generated inventory files.
+ansible/inventory_*
+
+# Ansible roles installed from Galaxy.
+ansible/roles/stackhpc.cluster-infra

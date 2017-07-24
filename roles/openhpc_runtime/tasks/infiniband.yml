@@ -1,3 +1,0 @@
----
-- name: Bring up the Infiniband interfaces
-  command: ifconfig ib0 up

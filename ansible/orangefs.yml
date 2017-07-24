@@ -1,0 +1,9 @@
+---
+- include: setup.yml
+
+- hosts: cluster
+  remote_user: "{{ cluster_guest }}"
+  become: yes
+  roles:
+    - role: orange_setup
+    - role: orangefs

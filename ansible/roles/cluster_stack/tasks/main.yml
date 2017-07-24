@@ -1,0 +1,14 @@
+---
+- name: Orchestrate OpenStack infrastructure
+  register: cluster_stack
+  os_stack:
+    name: "{{ cluster_name }}"
+    state: present
+    environment: "{{ cluster_environment }}"
+    template: "{{ cluster_template }}"
+    parameters: "{{ cluster_params }}"
+
+- name: Write inventory file for new cluster
+  template:
+    src: cluster_inventory.j2
+    dest: "{{ cluster_inventory }}"
