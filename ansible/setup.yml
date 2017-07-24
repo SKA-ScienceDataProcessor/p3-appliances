@@ -9,7 +9,7 @@
   
 # Apply generic setup configuration that is universally useful
 - hosts: cluster
-  remote_user: centos
+  remote_user: "{{ cluster_guest }}"
   become: yes
   roles:
     - role: cluster_setup

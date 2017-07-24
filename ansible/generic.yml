@@ -8,7 +8,7 @@
 # This playbook applies site config for Ceph support,
 # in particular CephFS home directories
 - hosts: cluster
-  remote_user: centos
+  remote_user: "{{ cluster_guest }}"
   become: yes
   roles:
     - role: cluster_setup
@@ -24,7 +24,7 @@
 # if required.  Generate an RSA public key and configure as 
 # an OpenStack-aware login node.
 - hosts: control
-  remote_user: centos
+  remote_user: "{{ cluster_guest }}"
   become: yes
   roles:
     - role: user_setup
@@ -32,7 +32,7 @@
       homedir: "{{ alaska_homedir }}"
 
 - hosts: compute
-  remote_user: centos
+  remote_user: "{{ cluster_guest }}"
   become: yes
   roles:
     - role: user_propagate

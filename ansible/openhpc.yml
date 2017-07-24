@@ -4,19 +4,19 @@
 - include: users.yml
 
 - hosts: cluster_login
-  remote_user: centos
+  remote_user: "{{ cluster_guest }}"
   become: yes
   roles:
     - role: openhpc_control
 
 - hosts: cluster_batch
-  remote_user: centos
+  remote_user: "{{ cluster_guest }}"
   become: yes
   roles:
     - role: openhpc_compute
 
 - hosts: cluster
-  remote_user: centos
+  remote_user: "{{ cluster_guest }}"
   become: yes
   roles:
     - role: openhpc_runtime

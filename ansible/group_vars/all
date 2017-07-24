@@ -4,6 +4,9 @@ cluster_name: stack
 cluster_groups: []
 cluster_roles: []
 
+# Cloud guest user used for Ansible access and password-less sudo.
+cluster_guest: centos
+
 # This keypair should exist in OpenStack.  It will be assigned
 # for the cloud user for the next phase of deployment.
 cluster_keypair: rsa_keypair
