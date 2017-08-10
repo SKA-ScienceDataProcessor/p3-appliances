@@ -1,4 +1,21 @@
 ---
+- hosts: orange-meta
+  become: yes
+  file: path=/scratch state=directory
+
+- hosts: orange-meta
+  become: yes
+  mdadm_arrays:
+    - name: 'md0'
+      devices:
+        - '/dev/nvme0n1'
+        - '/dev/nvme1n1'
+        - '/dev/mvme2n1'
+      filesystem: 'xfs'
+      level: '0'
+      mountpoint: '/scratch'
+      state: 'present'
+
 - hosts: orange-all
   become: yes
   roles:
