@@ -1,6 +1,12 @@
 ---
-- hosts: orange-all
+- hosts: orange-meta
+  become: yes
+  file: path=/scratch state=directory
+
+- hosts: orange-meta
   become: yes
   roles:
     - role: orange_setup
     - role: orangefs
+
+

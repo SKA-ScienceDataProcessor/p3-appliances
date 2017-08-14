@@ -31,7 +31,7 @@
 - name: format pvfs2 storage
   command: pvfs2-server -f -a "{{ inventory_hostname }}" /etc/pvfs2.conf creates=/export/orangefs/data
   when: inventory_hostname in groups['orange-data']
-  
+
 - name: start pvfs2 server
   systemd:
     name: orangefs
