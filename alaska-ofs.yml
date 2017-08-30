@@ -3,7 +3,7 @@
   become: yes
   file: path=/scratch state=directory
 
-- hosts: orange-meta
+- hosts: orange-all
   become: yes
   roles:
     - role: orange_setup
