@@ -1,19 +1,30 @@
 ---
+# If we don't do this, pvfs2-genconfig will not apply our config changes to /etc/pvfs2.conf...
+- name: Blow away any PVFS2 config in place
+  become: true
+  file:
+    path: /etc/pvfs2.conf
+    state: absent
+
 - name: Generate config file
-  command: pvfs2-genconfig --quiet --protocol tcp --ioservers "{{ groups['orange_data'] | join(',') }}" --metaservers "{{ groups['orange_data'] |join(',') }}" --storage /export/orangefs /etc/pvfs2.conf creates=/etc/pvfs2.conf
+  command: pvfs2-genconfig --quiet --protocol tcp --ioservers "{{ groups['orange_data'] | join(',') }}" --metaservers "{{ groups['orange_data'] |join(',') }}" --storage /export/orangefs /etc/pvfs2.conf
+  args:
+    creates: /etc/pvfs2.conf
   become: true
 
-- name: update storage path
+- name: update data storage path
   lineinfile:
     path: /etc/pvfs2.conf
-    regexp: 'DataStorageSpace /export/orangefs'
+    regexp: 'DataStorageSpace .*$'
     line: ' 	DataStorageSpace /export/orangefs/data'
+    insertbefore: '^</Defaults>'
 
-- name: update storage path
+- name: update metadata storage path
   lineinfile:
     path: /etc/pvfs2.conf
-    regexp: 'MetadataStorageSpace /export/orangefs'
+    regexp: 'MetadataStorageSpace .*$'
     line: ' 	MetadataStorageSpace /export/orangefs/meta'
+    insertbefore: '^</Defaults>'
 
 - name: probe the orangefs module
   modprobe:
@@ -41,6 +52,6 @@
   when: inventory_hostname in groups['orange_client']
 
 - name: run the mount comand
-  command: "mount -t pvfs2 tcp://{{ groups['orange_data'] |join('') }}:3334/orangefs /scratch"
+  command: "mount -t pvfs2 tcp://{{ groups['orange_data'] | first }}:3334/orangefs /scratch"
   become: true
   when: inventory_hostname in groups['orange_client']
