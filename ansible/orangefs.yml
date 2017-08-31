@@ -1,6 +1,10 @@
 ---
 - include: setup.yml
 
+- hosts: orange_meta
+  become: yes
+  file: path=/scratch state=directory
+
 - hosts: cluster
   remote_user: "{{ cluster_guest }}"
   become: yes

@@ -15,39 +15,6 @@
     regexp: 'MetadataStorageSpace /export/orangefs'
     line: ' 	MetadataStorageSpace /export/orangefs/meta'
 
-
-
-# Setup disks
-
-- name: install mdadm
-  dnf: name=mdadm state=latest
-  when: inventory_hostname in groups['orange_data']
-
-- name: setup mdraid 5 on nvmes
-  command: mdadm --create --verbose /dev/md0 --level=5 --raid-devices=4 /dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1 /dev/nvme3n1 creates=/dev/md0
-  become: true
-  when: inventory_hostname in groups['orange_data']
-  
-- name: format nvme disks mdraid
-  filesystem:
-    fstype: xfs
-    dev: /dev/md0
-  when: inventory_hostname in groups['orange_data']
-
-- name: create mountpoint
-  file: path=/export/orangefs state=directory
-  when: inventory_hostname in groups['orange_data']
-  
-- name: mount nvmes
-  mount:
-    path: /export/orangefs
-    src: /dev/md0
-    fstype: xfs
-    state: present
-  become: true
-  when: inventory_hostname in groups['orange_data']
-
-
 - name: probe the orangefs module
   modprobe:
     name: orangefs
@@ -56,7 +23,7 @@
 - name: format pvfs2 storage
   command: pvfs2-server -f -a "{{ inventory_hostname }}" /etc/pvfs2.conf creates=/export/orangefs/data
   when: inventory_hostname in groups['orange_data']
-  
+
 - name: start pvfs2 server
   systemd:
     name: orangefs
