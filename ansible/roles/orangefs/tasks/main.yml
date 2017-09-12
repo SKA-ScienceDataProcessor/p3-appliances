@@ -1,34 +1,34 @@
 ---
+# Generate the configuration file on one server and then distribute globally.
 # If we don't do this, pvfs2-genconfig will not apply our config changes to /etc/pvfs2.conf...
 - name: Generate a PVFS2 configuration file
   block:
-    - name: Ensure PVFS2 config file is not present
-      file:
-        path: /etc/pvfs2.conf
-        state: absent
-    - name: Generate a sample config file
-      command: pvfs2-genconfig --quiet --protocol tcp --ioservers "{{ groups['orange_data'] | join(',') }}" --metaservers "{{ groups['orange_data'] |join(',') }}" --storage /export/orangefs /etc/pvfs2.conf
-      args:
-        creates: /etc/pvfs2.conf
-    - name: Update DataStorageSpace setting
-      lineinfile:
-        path: /etc/pvfs2.conf
-        regexp: 'DataStorageSpace .*$'
-        line: ' 	DataStorageSpace /export/orangefs/data'
-        insertbefore: '^</Defaults>'
-    - name: Update MetadataStorageSpace setting
-      lineinfile:
-        path: /etc/pvfs2.conf
-        regexp: 'MetadataStorageSpace .*$'
-        line: ' 	MetadataStorageSpace /export/orangefs/meta'
-        insertbefore: '^</Defaults>'
-    - name: Retrieve generated PVFS2 config
-      fetch:
-        dest: "{{ playbook_dir }}/pvfs2.conf.tmp"
-        src: /etc/pvfs2.conf
-        fail_on_missing: yes
-        flat: yes
-  become: true
+  - name: Ensure PVFS2 config file is not present
+    file:
+      path: /etc/pvfs2.conf
+      state: absent
+  - name: Generate a sample config file
+    command: pvfs2-genconfig --quiet --protocol tcp --ioservers "{{ groups['orange_data'] | join(',') }}" --metaservers "{{ groups['orange_data'] |join(',') }}" --storage /export/orangefs /etc/pvfs2.conf
+    args:
+      creates: /etc/pvfs2.conf
+  - name: Update DataStorageSpace setting
+    lineinfile:
+      path: /etc/pvfs2.conf
+      regexp: 'DataStorageSpace .*$'
+      line: ' 	DataStorageSpace /export/orangefs/data'
+      insertbefore: '^</Defaults>'
+  - name: Update MetadataStorageSpace setting
+    lineinfile:
+      path: /etc/pvfs2.conf
+      regexp: 'MetadataStorageSpace .*$'
+      line: ' 	MetadataStorageSpace /export/orangefs/meta'
+      insertbefore: '^</Defaults>'
+  - name: Retrieve generated PVFS2 config
+    fetch:
+      dest: "{{ playbook_dir }}/pvfs2.conf.tmp"
+      src: /etc/pvfs2.conf
+      fail_on_missing: yes
+      flat: yes
   run_once: true
 
 - name: Copy out the PVFS2 config
@@ -40,23 +40,38 @@
     group: root
     force: yes
 
+- name: Remove temporary PVFS2 config file
+  local_action:
+    module: file
+    path: "{{ playbook_dir }}/pvfs2.conf.tmp"
+    state: absent
+  become: false
+  run_once: true
+
 - name: probe the orangefs module
   modprobe:
     name: orangefs
     state: present
 
-- name: format pvfs2 storage
-  command: pvfs2-server -f -a "{{ inventory_hostname }}" /etc/pvfs2.conf creates=/export/orangefs/data
+- name: Setup for data servers
+  block:
+  - name: Obliterate previous filesystem local data
+    file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+    - /export/orangefs/data
+    - /export/orangefs/meta
+  - name: Format PVFS2 storage
+    command: pvfs2-server -f -a "{{ inventory_hostname }}" /etc/pvfs2.conf creates=/export/orangefs/data
+  - name: Start PVFS2 server
+    systemd:
+      name: orangefs
+      enabled: yes
+      state: restarted
   when: inventory_hostname in groups['orange_data']
 
-- name: start pvfs2 server
-  systemd:
-    name: orangefs
-    enabled: yes
-    state: restarted
-  when: inventory_hostname in groups['orange_data']
-
-- name: start pvfs2 client
+- name: Start PVFS2 client
   systemd:
     name: orangefs_client
     enabled: yes
@@ -71,5 +86,4 @@
 
 - name: run the mount comand
   command: "mount -t pvfs2 tcp://{{ groups['orange_data'] | first }}:3334/orangefs /scratch"
-  become: true
   when: inventory_hostname in groups['orange_client']
