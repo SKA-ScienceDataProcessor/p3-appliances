@@ -3,7 +3,7 @@
 # if required.  Generate an RSA public key and configure as 
 # an OpenStack-aware login node.
 - hosts: cluster_login
-  remote_user: centos
+  remote_user: "{{ cluster_guest }}"
   become: yes
   roles:
     - role: user_setup
@@ -11,7 +11,7 @@
       homedir: "{{ alaska_homedir }}"
 
 - hosts: cluster_batch
-  remote_user: centos
+  remote_user: "{{ cluster_guest }}"
   become: yes
   roles:
     - role: user_propagate

@@ -1,0 +1,17 @@
+---
+- include: setup.yml
+
+- hosts: orange_meta
+  remote_user: "{{ cluster_guest }}"
+  become: yes
+  tasks:
+    - name: Ensure the /scratch filesystem is present on Metadata servers
+      become: yes
+      file: path=/scratch state=directory
+
+- hosts: cluster
+  remote_user: "{{ cluster_guest }}"
+  become: yes
+  roles:
+    - role: orange_setup
+    - role: orangefs

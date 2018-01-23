@@ -10,7 +10,7 @@
 # This playbook applies site config for Ceph client support,
 # in particular CephFS home directories
 - hosts: cluster_ceph_client
-  remote_user: centos
+  remote_user: "{{ cluster_guest }}"
   become: yes
   roles:
     - role: ceph_setup

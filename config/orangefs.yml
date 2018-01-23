@@ -1,6 +1,15 @@
 ---
 cluster_name: orange
 cluster_keypair: ilab_sclt100
+
+# We are using Fedora images for this deployment:
+# We need to use the Fedora cloud image guest user
+cluster_guest: "fedora"
+
+# Site-specific network configuration.
+cluster_net:
+  - { net: "ilab", subnet: "ilab" }
+
 cluster_groups:
   - "{{ orangefs_meta }}"
   - "{{ orangefs_data }}"
@@ -24,3 +33,4 @@ orangefs_client:
   image: "FedoraCore"
   num_nodes: 4
 
+cluster_roles: []

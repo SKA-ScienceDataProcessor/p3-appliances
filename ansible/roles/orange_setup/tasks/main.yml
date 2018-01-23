@@ -1,0 +1,29 @@
+---
+- name: copy rpms to server
+  copy: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - { src: '{{ role_path }}/files/orangefs-2.9.7-1.fc25.x86_64.rpm',
+        dest: '/tmp/orangefs-2.9.7-1.fc25.x86_64.rpm' }
+    - { src: '{{ role_path }}/files/orangefs-server-2.9.7-1.fc25.x86_64.rpm',
+        dest: '/tmp/orangefs-server-2.9.7-1.fc25.x86_64.rpm' }
+
+- name: copy unit file for client
+  copy: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - { src: '{{ role_path }}/files/orangefs_client.service',
+        dest: '/usr/lib/systemd/system/' }
+  become: yes
+  when: inventory_hostname in groups['orange_client']
+  
+- name: orange dependencys
+  dnf:
+    name: perl-Math-BigInt
+    state: present
+
+- name: install orangefs packages
+  dnf:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - /tmp/orangefs-2.9.7-1.fc25.x86_64.rpm
+    - /tmp/orangefs-server-2.9.7-1.fc25.x86_64.rpm
