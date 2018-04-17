@@ -7,6 +7,11 @@
     mode: 0755
   register: firmware_data
 
+# todo: check raid controller not in use:
+#   - check all mounts
+#   - check mappings from device mapper
+#   - lvm mounts
+
 # Exit codes:
 # 2: Update applied.
 # 3: No update required.
