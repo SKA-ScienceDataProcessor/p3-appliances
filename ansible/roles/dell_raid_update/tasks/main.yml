@@ -16,7 +16,7 @@
 # 2: Update applied.
 # 3: No update required.
 - name: Execute the raid firmware upgrade
-  command: "{{ firmware_data.dest }}"
+  command: "{{ firmware_data.dest }} -q"
   become: True
   register: result
   failed_when: result.rc not in [2, 3]
