@@ -28,4 +28,4 @@
 # Store file into /tmp/fetched/host.example.com/tmp/somefile
 - fetch:
     src: "{{ LOCAL_LOC }}/run-profile.sar"
-    dest: ./run-profile.sar
+    dest: ./run-profile-results
