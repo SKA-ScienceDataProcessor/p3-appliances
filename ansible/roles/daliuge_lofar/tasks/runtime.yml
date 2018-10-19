@@ -1,0 +1,25 @@
+---
+# daliuge_lofar/tasks/runtime.yml
+#
+#
+- name: Install developments tools envrironment group
+  yum:
+    name: "@Development Tools"
+    state: installed
+
+- name: Ensure docker is installed for this use case
+  yum:
+    name: docker, python-pip, docker-compose, sysstat
+    state: installed
+
+- name: Enable and start docker
+  systemd:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Ensure selected packages are installed
+  yum:
+    name: "{{item}}"
+    state: installed
+  with_items: "{{daliuge_packages}}"

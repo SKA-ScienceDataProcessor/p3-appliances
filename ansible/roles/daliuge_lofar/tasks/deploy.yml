@@ -1,0 +1,141 @@
+---
+# daliuge_lofar/tasks/deploy.yml
+#
+# NOTE: Defaults are loaded from daliuge_lofar/defaults/main.yml
+#
+#
+
+# Install docutils
+- pip:
+    name: docutils
+
+# Install DALiuGE
+- pip:
+    name: daliuge
+
+# Clone the DALiuGE head branch
+- git:
+    repo: https://github.com/ICRAR/daliuge.git
+    dest: "{{ BUILD_ROOT_DALIUGE_LOC }}"
+    force: yes
+
+- name: Run the DALiuGE docker base build.sh script
+  shell: "{{ BUILD_ROOT_DALIUGE_BASE_LOC }}/build.sh"
+  args:
+    chdir: "{{ BUILD_ROOT_DALIUGE_BASE_LOC }}"
+
+- name: Run the DALiuGE docker dfms build.sh script
+  shell: "{{ BUILD_ROOT_DALIUGE_DFMS_LOC }}/build.sh"
+  args:
+    chdir: "{{ BUILD_ROOT_DALIUGE_DFMS_LOC }}"
+
+#
+# Clone the prefactor-DALiuGE tags/sdp-0.1 git repo
+- git:
+    repo: https://github.com/ygrange/prefactor-DALiuGE
+    version: sdp-0.1
+    dest: "{{ BUILD_ROOT_PREFACTOR_DALIUGE_LOC }}"
+    force: yes
+
+- name: Run the prefactor DALiuGE LOFAR docker base build.sh script
+  shell: "{{ BUILD_ROOT_PREFACTOR_DALIUGE_LOFAR_DLG_BASE_LOC }}/build.sh"
+  args:
+    chdir: "{{ BUILD_ROOT_PREFACTOR_DALIUGE_LOFAR_DLG_BASE_LOC }}"
+
+- name: Run the prefactor DALiuGE LOFAR docker build.sh script, THIS WILL TAKE A LONG TIME
+  shell: "{{ BUILD_ROOT_PREFACTOR_DALIUGE_LOFAR_DLG_LOC }}/build.sh"
+  args:
+    chdir: "{{ BUILD_ROOT_PREFACTOR_DALIUGE_LOFAR_DLG_LOC }}"
+
+#
+# Clone the CALIB tags/sdp-0.1 git repo
+- git:
+    repo: https://github.com/ygrange/CALIB
+    version: sdp-0.1
+    dest: "{{ BUILD_ROOT_CALIB_LOC }}"
+    force: yes
+
+- name: Build the CALIB (dlg-calib) docker container image
+  command: "docker build -t dlg-calib/centos7 ."
+  args:
+    chdir: "{{ BUILD_ROOT_CALIB_LOC }}"
+
+#
+# Clone the DALiuGE logical graph repo
+- git:
+    repo: https://github.com/ICRAR/daliuge-logical-graphs
+    dest: "{{ LOCAL_DALIUGE_LOGICAL_GRAPHS_LOC }}"
+    force: yes
+
+- name: Write docker-compose YAML file to /local
+  copy:
+    src: docker-compose.yml
+    dest: "{{ LOCAL_LOC }}"
+    mode: 0644
+    owner: root
+    group: root
+
+- name: Write run-profile Python scritp to /local
+  copy:
+    src: run-profile.py
+    dest: "{{ LOCAL_LOC }}"
+    mode: 0755
+    owner: root
+    group: root
+
+# Create the DATA directory
+- file:
+    path: "{{ LOCAL_DATA_LOC }}"
+    state: directory
+
+# Create the DATA small directory
+- file:
+    path: "{{ LOCAL_DATA_SMALL_LOC }}"
+    state: directory
+
+- name: Unarchive prefactor data onto remote host
+  unarchive:
+    src: prefactor_demodata.tar.bz2
+    dest: "{{ LOCAL_DATA_SMALL_LOC }}"
+    owner: root
+    group: root
+
+- name: Unarchive CALIB data onto remote host
+  unarchive:
+    src: CALIB_demodata.tar.bz2
+    dest: "{{ LOCAL_DATA_LOC }}"
+    owner: root
+    group: root
+
+# Create the SHARED directory
+- file:
+    path: "{{ LOCAL_SHARED_LOC }}"
+    state: directory
+    mode: 0777
+
+# Create the WORKDIR directory
+- file:
+    path: "{{ LOCAL_WORKDIR_LOC }}"
+    state: directory
+    mode: 0777
+
+# Create the WORKDIR dlg-lgweb directory
+- file:
+    path: "{{ LOCAL_WORKDIR_DLG_LGWEB_LOC }}"
+    state: directory
+    mode: 0777
+
+# Create the WORKDIR logs directory
+- file:
+    path: "{{ LOCAL_WORKDIR_LOGS_LOC }}"
+    state: directory
+    mode: 0777
+
+# Create the SHARED WORKDIR directory
+- file:
+    path: "{{ LOCAL_SHARED_WORKDIR_LOC }}"
+    state: directory
+    mode: 0777
+
+# Move prefactor data
+- shell: "mv {{ LOCAL_DATA_SMALL_LOC }}/cal/* {{ LOCAL_DATA_SMALL_LOC }}/"

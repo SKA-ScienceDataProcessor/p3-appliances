@@ -1,0 +1,31 @@
+---
+# daliuge_lofar/tasks/main.yml
+#
+# NOTE: Defaults are loaded from daliuge_lofar/defaults/main.yml
+#
+#
+- include: runtime.yml
+
+# Remove the WORK_ROOT directory
+- file:
+    path: "{{ BUILD_ROOT_LOC }}"
+    state: absent
+
+# Create the WORK_ROOT directory
+- file:
+    path: "{{ BUILD_ROOT_LOC }}"
+    state: directory
+
+# Remove the LOCAL directory
+- file:
+    path: "{{ LOCAL_LOC }}"
+    state: absent
+
+# Create the LOCAL directory
+- file:
+    path: "{{ LOCAL_LOC }}"
+    state: directory
+
+- include: deploy.yml
+
+- include: run-profile.yml
