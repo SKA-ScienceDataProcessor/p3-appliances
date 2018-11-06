@@ -1,0 +1,31 @@
+---
+# daliuge_lofar/tasks/run-profile.yml
+#
+# NOTE: Defaults are loaded from daliuge_lofar/defaults/main.yml
+#
+#
+
+- name: Stop any running DALiuGEs
+  shell: "docker-compose -f /local/docker-compose.yml down"
+  args:
+    chdir: "{{ LOCAL_LOC }}"
+
+# Remove the WORK_ROOT directory
+- file:
+    path: "{{ LOCAL_WORKDIR_LOC }}/daliuge-lofar"
+    state: absent
+
+- name: Start DALiuGE IM, NM and Web interface via docker-compose
+  shell: "nohup docker-compose -f /local/docker-compose.yml up </dev/null >/dev/null 2>&1 &"
+  args:
+    chdir: "{{ LOCAL_LOC }}"
+
+- name: Run the profile script, WILL TAKE ABOUT 1h 45m TO RUN
+  command: "python ./run-profile.py"
+  args:
+    chdir: "{{ LOCAL_LOC }}"
+
+# Store file into /tmp/fetched/host.example.com/tmp/somefile
+- fetch:
+    src: "{{ LOCAL_LOC }}/run-profile.sar"
+    dest: ./run-profile-results
